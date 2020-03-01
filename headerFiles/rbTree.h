@@ -22,7 +22,7 @@ typedef struct NODE{
     n_COLOR color;
 }* t_NODE;
 
-const t_NODE GLOBAL_NIL;     //how to implement sentinel nil node
+// const t_NODE GLOBAL_NIL;     //how to implement sentinel nil node
 
 class rbTree{
     public:
@@ -36,14 +36,18 @@ class rbTree{
 
     private:
         t_NODE p_Root;
+        t_NODE GLOBAL_NIL;
 
         t_NODE p_CreateNode(int);
         void p_InsertNode(t_NODE);
+        void p_InsertHelper(t_NODE);
         int p_DeleteNode(t_NODE);
         int p_SearchNode(int);
         void p_DumpTree(t_NODE, int);
         int p_LeftRotate(t_NODE);
         int p_RightRotate(t_NODE);
+        t_NODE p_GetRoot(void);
+        void p_InOrderPrint(t_NODE);
 
 
 

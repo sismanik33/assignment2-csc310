@@ -6,9 +6,11 @@
 
 /**************************** PUBLIC: Constructor ****************************/
 rbTree::rbTree(){
-    GLOBAL_NIL->value = NULL;
-    GLOBAL_NIL->lChild = NULL;
-    GLOBAL_NIL->rChild = NULL;
+    GLOBAL_NIL = new NODE;     //how to implement sentinel nil node
+
+    GLOBAL_NIL->value = -1;
+    GLOBAL_NIL->lChild = GLOBAL_NIL;
+    GLOBAL_NIL->rChild = GLOBAL_NIL;
     GLOBAL_NIL->color = BLACK;
     p_Root = GLOBAL_NIL;
 }
@@ -19,21 +21,42 @@ rbTree::~rbTree(){
 }
 
 /**************************** PUBLIC: insertNode ****************************/
-void rbTree::insertNode(int valueToInsert){
+void rbTree::insertNode(int nodeValue){
     t_NODE nodeToInsert = NULL;
     
     try {
-        t_NODE nodeToInsert = p_CreateNode(valueToInsert); 
-    } catch(MyException &exc) {
-        std::cerr << exc.what() << '\n';
-    }
-
-    try {
+        t_NODE nodeToInsert = p_CreateNode(nodeValue);
         p_InsertNode(nodeToInsert);
     } catch(MyException &exc) {
         std::cerr << exc.what() << '\n';
     }
+
+    // try {
+    // } catch(MyException &exc) {
+    //     std::cerr << exc.what() << '\n';
+    // }
     
+}
+
+/**************************** PUBLIC: printTree ****************************/
+void rbTree::printTree(void){
+    try {
+        t_NODE root = NULL;
+        root = p_GetRoot(); 
+        p_DumpTree(root, 2); 
+        // p_InOrderPrint(root);
+    } catch(MyException &exc) {
+        cerr << exc.what() << '\n';
+    }
+}
+
+/**************************** PRIVATE: p_GetRoot ****************************/
+t_NODE rbTree::p_GetRoot(void){
+    try {
+        return p_Root; 
+    } catch(exception &exc) {
+        throw MyException("Unable to return root of tree.", WARNING);
+    }
 }
 
 
@@ -52,6 +75,8 @@ t_NODE rbTree::p_CreateNode(int nodeValue){
         newNode->lChild = GLOBAL_NIL;
         newNode->rChild = GLOBAL_NIL;
         newNode->color = RED;
+        
+        return newNode;
     } catch(bad_alloc &exc) {
         cerr<<"bad_alloc has occurred!\n";
         string exceptionStr = string("p_CreateNode: ") + exc.what();
@@ -60,50 +85,132 @@ t_NODE rbTree::p_CreateNode(int nodeValue){
         string exceptionStr = string("General failure (p_CreateNode): ") + exc.what();
         throw MyException(exceptionStr, SYSTEM_FAILURE);
     }
-     
-    return newNode;
     
 }
 
 /**************************** PRIVATE: p_InsertNode ****************************/
 void rbTree::p_InsertNode(t_NODE nodeToInsert){
-    t_NODE walker = nullptr;
-    t_NODE walkerParent = nullptr;
+    try {
+        t_NODE follower = GLOBAL_NIL;
+        t_NODE walker = p_Root;
 
-    if (p_Root == NULL){
-        try {
-            nodeToInsert->parent = NULL;
-            nodeToInsert->color = BLACK;
-            p_Root = nodeToInsert;
-            return; 
-        } catch(exception &exc) {
-            throw MyException("Error inserting node (p_InsertNode)", ERROR);
-        }
-    } else {
-        walker = p_Root;
-        
-        while(walker != GLOBAL_NIL){
-            walkerParent = walker;
+        while ( walker != GLOBAL_NIL){
+        follower = walker;
             if (nodeToInsert->value < walker->value){
                 walker = walker->lChild;
-            } else {
+            } else{
                 walker = walker->rChild;
             }
         }
+        nodeToInsert->parent = follower;
 
-        nodeToInsert->parent = walkerParent;
+        if(follower == GLOBAL_NIL){
+            p_Root = nodeToInsert;
+        } else if (nodeToInsert->value < follower->value){
+            follower->lChild = nodeToInsert;
+        } else {
+            follower->rChild = nodeToInsert;
+        } 
+
+        p_InsertHelper(nodeToInsert);
+    } catch(exception &exc) {
+        throw MyException("Problem encountered during execution of p_InsertNode", WARNING);
     }
 
-    
-    
+}
+
+/**************************** PRIVATE: p_InsertHelper ****************************/
+void rbTree::p_InsertHelper(t_NODE newChild){
+    while (newChild->parent->color == RED){
+        if (newChild->parent == newChild->parent->parent->lChild){
+            t_NODE uncleNode = newChild->parent->parent->rChild;
+            if (uncleNode->color == RED){
+                newChild->parent->color = BLACK;
+                uncleNode->color = BLACK;
+                newChild->parent->parent->color = RED;
+                newChild = newChild->parent->parent;
+            } else{ 
+                if (newChild == newChild->parent->rChild){
+                newChild = newChild->parent;
+                p_LeftRotate(newChild);
+                }
+            newChild->parent->color = BLACK;
+            newChild->parent->parent->color = RED;
+            p_RightRotate(newChild->parent->parent);
+            }
+        } else{
+            t_NODE uncleNode = newChild->parent->parent->lChild;
+            if (uncleNode->color == RED){
+                newChild->parent->color = BLACK;
+                uncleNode->color = BLACK;
+                newChild->parent->parent->color = RED;
+                newChild = newChild->parent->parent;
+            } else {
+                if (newChild == newChild->parent->lChild){
+                newChild = newChild->parent;
+                p_RightRotate(newChild);
+                } 
+            newChild->parent->color = BLACK;
+            newChild->parent->parent->color = RED;
+            p_LeftRotate(newChild->parent->parent);
+            }
+        }
+    }
+    p_Root->color = BLACK;
+}
+
+
+/**************************** PRIVATE: p_LeftRotate ****************************/
+int rbTree::p_LeftRotate(t_NODE x){
+    try {
+        t_NODE y = x->rChild;
+        x->rChild = y->lChild;
+        if(y->lChild != GLOBAL_NIL){
+            y->lChild->parent = x;
+        }
+        y->parent = x->parent;
+        if(x->parent == GLOBAL_NIL){
+            p_Root = y;
+        } else if (x == x->parent->lChild){
+            x->parent->lChild = y;
+        } else {
+            x->parent->rChild = y;
+        }
+        y->lChild = x;
+        x->parent = y;        
+    } catch(exception &exc) {
+        throw MyException("Error during execution of p_LeftRotate", WARNING);
+    }
+}
+
+/**************************** PRIVATE: p_RightRotate ****************************/
+int rbTree::p_RightRotate(t_NODE x){
+    try {
+        t_NODE y = x->lChild;
+        x->lChild = y->rChild;
+        if(y->rChild != GLOBAL_NIL){
+            y->rChild->parent = x;
+        }
+        y->parent = x->parent;
+        if(x->parent == GLOBAL_NIL){
+            p_Root = y;
+        } else if (x == x->parent->rChild){
+            x->parent->rChild = y;
+        } else {
+            x->parent->lChild = y;
+        }
+        y->rChild = x;
+        x->parent = y;
+        } catch(exception &exc) {
+       throw MyException("Error during execution of p_RightRotate", WARNING);
+    }
     
 
 }
 
-
 /************************* PRIVATE: p_DumpTree *************************/
 void rbTree::p_DumpTree(t_NODE node, int indent){
-    if( NULL == node ){
+    if( GLOBAL_NIL == node ){
         return;
     } else {
         this->p_DumpTree(node->lChild, indent+4);
@@ -119,5 +226,14 @@ void rbTree::p_DumpTree(t_NODE node, int indent){
             }
         }
         this->p_DumpTree(node->rChild, indent+4);
+    }
+}
+
+/**************************** PRIVATE: p_InOrderHelper ****************************/
+void rbTree::p_InOrderPrint(t_NODE node){
+    if(node != GLOBAL_NIL){
+        p_InOrderPrint(node->lChild);
+        cout<<node->value<<"."<<node->color<<" - ";
+        p_InOrderPrint(node->rChild);
     }
 }
