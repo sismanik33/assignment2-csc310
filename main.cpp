@@ -14,19 +14,25 @@ int main(int argc, char* argv[]){
   myInput >> inputCount;
   
   rbTree redBlackTree;
-  int insertArray[5] = {5,4,3,2,1};
 
   for(i = 0; i < inputCount; i++){
     myInput >> numFromFile;
     redBlackTree.insertNode(numFromFile);
   }
 
-  //  for(i = 0; i < 5; i++){
-  //   redBlackTree.insertNode(insertArray[i]);
-  // }
-  // myInput.close();
+  redBlackTree.searchNode(200);
+  redBlackTree.searchNode(197);
 
   redBlackTree.printTree();
+
+  rbTree secondRBTree;
+  int insertArray[10] = {1,2,3,4,5,6,6,7,8,9};
+  
+  for (i = 0; i < 10; i++) {
+    secondRBTree.insertNode(insertArray[i]);
+  }
+  secondRBTree.printTree();
+  
   
   return 0;
 }

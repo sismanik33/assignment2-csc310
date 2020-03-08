@@ -6,11 +6,11 @@
 
 /**************************** PUBLIC: Constructor ****************************/
 rbTree::rbTree(){
-    GLOBAL_NIL = new NODE;     //how to implement sentinel nil node
+    GLOBAL_NIL = new NODE;  
 
     GLOBAL_NIL->value = -1;
-    GLOBAL_NIL->lChild = GLOBAL_NIL;
-    GLOBAL_NIL->rChild = GLOBAL_NIL;
+    GLOBAL_NIL->lChild = nullptr;
+    GLOBAL_NIL->rChild = nullptr;
     GLOBAL_NIL->color = BLACK;
     p_Root = GLOBAL_NIL;
 }
@@ -25,16 +25,12 @@ void rbTree::insertNode(int nodeValue){
     t_NODE nodeToInsert = NULL;
     
     try {
+        p_SearchExcWhenPresent(p_GetRoot(), nodeValue);
         t_NODE nodeToInsert = p_CreateNode(nodeValue);
         p_InsertNode(nodeToInsert);
     } catch(MyException &exc) {
-        std::cerr << exc.what() << '\n';
+        cerr << exc.what() << '\n';
     }
-
-    // try {
-    // } catch(MyException &exc) {
-    //     std::cerr << exc.what() << '\n';
-    // }
     
 }
 
@@ -43,20 +39,29 @@ void rbTree::printTree(void){
     try {
         t_NODE root = NULL;
         root = p_GetRoot(); 
-        p_DumpTree(root, 2); 
+        p_DumpTree(root, 1); 
         // p_InOrderPrint(root);
     } catch(MyException &exc) {
         cerr << exc.what() << '\n';
     }
 }
 
+/**************************** PUBLIC: searchNode ****************************/
+void rbTree::searchNode(int key){
+   try {
+        p_SearchExcWhenAbsent(p_GetRoot(), key);
+        cout<<key<<" found in tree."<<endl;
+    } catch(MyException &exc) {
+        cerr << exc.what() << '\n';
+    } 
+}
+    
+
+
+
 /**************************** PRIVATE: p_GetRoot ****************************/
 t_NODE rbTree::p_GetRoot(void){
-    try {
-        return p_Root; 
-    } catch(exception &exc) {
-        throw MyException("Unable to return root of tree.", WARNING);
-    }
+    return p_Root;
 }
 
 
@@ -64,8 +69,9 @@ t_NODE rbTree::p_GetRoot(void){
 t_NODE rbTree::p_CreateNode(int nodeValue){
 
     //if value already in tree or <= 0 do not create
-    if (nodeValue <= 0)
+    if (nodeValue <= 0){
         throw MyException("Node values must be greater than 0", WARNING);
+    }
 
     t_NODE newNode = NULL;
 
@@ -78,8 +84,7 @@ t_NODE rbTree::p_CreateNode(int nodeValue){
         
         return newNode;
     } catch(bad_alloc &exc) {
-        cerr<<"bad_alloc has occurred!\n";
-        string exceptionStr = string("p_CreateNode: ") + exc.what();
+        string exceptionStr = string("p_CreateNode(bad_alloc): ") + exc.what();
         throw MyException(exceptionStr, SYSTEM_FAILURE);
     } catch(exception &exc){
         string exceptionStr = string("General failure (p_CreateNode): ") + exc.what();
@@ -204,8 +209,6 @@ int rbTree::p_RightRotate(t_NODE x){
         } catch(exception &exc) {
        throw MyException("Error during execution of p_RightRotate", WARNING);
     }
-    
-
 }
 
 /************************* PRIVATE: p_DumpTree *************************/
@@ -229,7 +232,7 @@ void rbTree::p_DumpTree(t_NODE node, int indent){
     }
 }
 
-/**************************** PRIVATE: p_InOrderHelper ****************************/
+/**************************** PRIVATE: p_InOrderPrint ****************************/
 void rbTree::p_InOrderPrint(t_NODE node){
     if(node != GLOBAL_NIL){
         p_InOrderPrint(node->lChild);
@@ -237,3 +240,63 @@ void rbTree::p_InOrderPrint(t_NODE node){
         p_InOrderPrint(node->rChild);
     }
 }
+
+// /**************************** PRIVATE: p_SearchNode ****************************/
+// bool rbTree::p_SearchNode(t_NODE root, int key){
+//     if (root == GLOBAL_NIL || root->value == key){
+//         if(root->value == key){
+//             return true;
+//         } else {
+//             return false;
+//         }
+//     }
+//     if (key < root->value){
+//         return p_SearchNode(root->lChild, key);
+//     } else{
+//         return p_SearchNode(root->rChild, key);
+//     }
+// }
+
+/**************************** PRIVATE: p_SearchExcWhenAbsent ****************************/
+void rbTree::p_SearchExcWhenAbsent(t_NODE root, int key){
+    if (root == GLOBAL_NIL || root->value == key){
+    if(root->value == key){
+        return;
+    } else {
+        throw MyException("Node with value " + to_string(key) + " not present in tree.", WARNING);
+    }
+    }
+    if (key < root->value){
+        return p_SearchExcWhenAbsent(root->lChild, key);
+    } else{
+        return p_SearchExcWhenAbsent(root->rChild, key);
+    }
+}
+
+/**************************** PRIVATE: p_SearchExcWhenPresent ****************************/
+void rbTree::p_SearchExcWhenPresent(t_NODE root, int key){
+    if (root == GLOBAL_NIL || root->value == key){
+    if(root->value == key){
+        throw MyException("Node with value " + to_string(key) + " already present in tree.", WARNING);
+    } else {
+        return;
+    }
+    }
+    if (key < root->value){
+        return p_SearchExcWhenPresent(root->lChild, key);
+    } else{
+        return p_SearchExcWhenPresent(root->rChild, key);
+    }
+}
+
+
+/**************************** Private: p_SearchNodeHelper ****************************/
+// void rbTree::p_SearchNodeHelper(int key){
+//     if (p_SearchNode(p_Root, key) == true){
+//         throw MyException("Node with value " + to_string(key) + " found in tree", INFORMATIONAL);
+//     } else {
+//         throw MyException("Node with value " + to_string(key) + " NOT found in tree", WARNING);
+//     }
+// }
+
+

@@ -13,4 +13,4 @@ myException.o: myException.cpp $^
 	$(CC) -c -o $@ $< $(CCFLAGS)
 
 clean:
-	rm *.o assignment2
+	rm $(OBJECTS) assignment2
