@@ -33,7 +33,7 @@ class rbTree{
         void deleteNode(int);
         void printTree(void);
         void searchNode(int);
-        void deleteNode(int);
+        void deleteTree(void);
 
     private:
         t_NODE p_Root;
@@ -43,6 +43,7 @@ class rbTree{
         void p_InsertNode(t_NODE);
         void p_InsertHelper(t_NODE);
         void p_DeleteNode(t_NODE);
+        void p_DeleteHelper(t_NODE);
         void p_DumpTree(t_NODE, int);
         int p_LeftRotate(t_NODE);
         int p_RightRotate(t_NODE);
@@ -53,6 +54,8 @@ class rbTree{
         t_NODE p_GetNode(t_NODE, int);
         void p_Transplant(t_NODE, t_NODE);
         t_NODE p_GetPredecessor(t_NODE);
+        void p_DeleteTree(void);
+        
 };
 
 #endif

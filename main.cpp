@@ -32,7 +32,14 @@ int main(int argc, char* argv[]){
     secondRBTree.insertNode(insertArray[i]);
   }
   secondRBTree.printTree();
-  
+  secondRBTree.deleteNode(11);
+  secondRBTree.deleteNode(8);
+  secondRBTree.printTree();
+  cout<<"Attempting to delete tree:\n";
+  redBlackTree.deleteTree();
+  secondRBTree.deleteTree();
+  cout<<"Printing empty tree:\n";
+  secondRBTree.printTree();
   
   return 0;
 }
