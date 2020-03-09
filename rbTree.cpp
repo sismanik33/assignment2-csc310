@@ -6,13 +6,17 @@
 
 /**************************** PUBLIC: Constructor ****************************/
 rbTree::rbTree(){
-    GLOBAL_NIL = new NODE;  
+    try{
+        GLOBAL_NIL = new NODE;  
 
-    GLOBAL_NIL->value = -1;
-    GLOBAL_NIL->lChild = nullptr;
-    GLOBAL_NIL->rChild = nullptr;
-    GLOBAL_NIL->color = BLACK;
-    p_Root = GLOBAL_NIL;
+        GLOBAL_NIL->value = -1;
+        GLOBAL_NIL->lChild = nullptr;
+        GLOBAL_NIL->rChild = nullptr;
+        GLOBAL_NIL->color = BLACK;
+        p_Root = GLOBAL_NIL;
+    } catch(exception &exc){
+        cerr<<exc.what()<<endl;
+    }
 }
 
 /**************************** PUBLIC: Destructor ****************************/
@@ -64,7 +68,6 @@ void rbTree::searchNode(int key){
 /**************************** PUBLIC: deleteNode ****************************/
 void rbTree::deleteNode(int valueToDelete){
     try {
-        p_SearchExcWhenAbsent(p_GetRoot(), valueToDelete);
         t_NODE nodeToDelete = p_GetNode(p_GetRoot(), valueToDelete);
         p_DeleteNode(nodeToDelete);
     } catch(MyException &exc) {
@@ -84,7 +87,11 @@ void rbTree::deleteTree(void){
 
 /**************************** PRIVATE: p_GetRoot ****************************/
 t_NODE rbTree::p_GetRoot(void){
-    return p_Root;
+    try{
+        return p_Root;
+    } catch(exception &exc){
+        throw MyException("Error during execution of p_GetRoot: " + string(exc.what()), WARNING);
+    }
 }
 
 
@@ -142,49 +149,53 @@ void rbTree::p_InsertNode(t_NODE nodeToInsert){
 
         p_InsertHelper(nodeToInsert);
     } catch(exception &exc) {
-        throw MyException("Problem encountered during execution of p_InsertNode", WARNING);
+        throw MyException("Error during execution of p_InsertNode: " + string(exc.what()), WARNING);
     }
 
 }
 
 /**************************** PRIVATE: p_InsertHelper ****************************/
 void rbTree::p_InsertHelper(t_NODE newChild){
-    while (newChild->parent->color == RED){
-        if (newChild->parent == newChild->parent->parent->lChild){
-            t_NODE uncleNode = newChild->parent->parent->rChild;
-            if (uncleNode->color == RED){
+    try{
+        while (newChild->parent->color == RED){
+            if (newChild->parent == newChild->parent->parent->lChild){
+                t_NODE uncleNode = newChild->parent->parent->rChild;
+                if (uncleNode->color == RED){
+                    newChild->parent->color = BLACK;
+                    uncleNode->color = BLACK;
+                    newChild->parent->parent->color = RED;
+                    newChild = newChild->parent->parent;
+                } else{ 
+                    if (newChild == newChild->parent->rChild){
+                    newChild = newChild->parent;
+                    p_LeftRotate(newChild);
+                    }
                 newChild->parent->color = BLACK;
-                uncleNode->color = BLACK;
                 newChild->parent->parent->color = RED;
-                newChild = newChild->parent->parent;
-            } else{ 
-                if (newChild == newChild->parent->rChild){
-                newChild = newChild->parent;
-                p_LeftRotate(newChild);
+                p_RightRotate(newChild->parent->parent);
                 }
-            newChild->parent->color = BLACK;
-            newChild->parent->parent->color = RED;
-            p_RightRotate(newChild->parent->parent);
-            }
-        } else{
-            t_NODE uncleNode = newChild->parent->parent->lChild;
-            if (uncleNode->color == RED){
+            } else{
+                t_NODE uncleNode = newChild->parent->parent->lChild;
+                if (uncleNode->color == RED){
+                    newChild->parent->color = BLACK;
+                    uncleNode->color = BLACK;
+                    newChild->parent->parent->color = RED;
+                    newChild = newChild->parent->parent;
+                } else {
+                    if (newChild == newChild->parent->lChild){
+                    newChild = newChild->parent;
+                    p_RightRotate(newChild);
+                    } 
                 newChild->parent->color = BLACK;
-                uncleNode->color = BLACK;
                 newChild->parent->parent->color = RED;
-                newChild = newChild->parent->parent;
-            } else {
-                if (newChild == newChild->parent->lChild){
-                newChild = newChild->parent;
-                p_RightRotate(newChild);
-                } 
-            newChild->parent->color = BLACK;
-            newChild->parent->parent->color = RED;
-            p_LeftRotate(newChild->parent->parent);
+                p_LeftRotate(newChild->parent->parent);
+                }
             }
         }
+        p_Root->color = BLACK;
+    } catch (exception &exc){
+        throw MyException("Error during execution of p_InsertHelper: " + string(exc.what()), WARNING);
     }
-    p_Root->color = BLACK;
 }
 
 
@@ -236,22 +247,26 @@ int rbTree::p_RightRotate(t_NODE x){
 
 /************************* PRIVATE: p_DumpTree *************************/
 void rbTree::p_DumpTree(t_NODE node, int indent){
-    if( GLOBAL_NIL == node ){
-        return;
-    } else {
-        this->p_DumpTree(node->lChild, indent+4);
-        if( -1 != node->value ){
-            if( indent ){
-                cout<<setw(indent)<<" ";
+    try{
+        if( GLOBAL_NIL == node ){
+            return;
+        } else {
+            this->p_DumpTree(node->lChild, indent+4);
+            if( -1 != node->value ){
+                if( indent ){
+                    cout<<setw(indent)<<" ";
+                }
+                cout<<node->value<<": ";
+                if( BLACK == node->color ){
+                    cout<<"BLACK"<<endl;
+                } else {
+                    cout<<"RED"<<endl;
+                }
             }
-            cout<<node->value<<": ";
-            if( BLACK == node->color ){
-                cout<<"BLACK"<<endl;
-            } else {
-                cout<<"RED"<<endl;
-            }
+            this->p_DumpTree(node->rChild, indent+4);
         }
-        this->p_DumpTree(node->rChild, indent+4);
+    } catch(exception &exc){
+        throw MyException("Error during execution of p_DumpTree: " + string(exc.what()), WARNING);
     }
 }
 
@@ -312,114 +327,130 @@ t_NODE rbTree::p_GetNode(t_NODE root, int key){
     }
 }
 
-/**************************** PRIVATE: p_Predecessor ****************************/
+/**************************** PRIVATE: p_GetPredecessor ****************************/
 t_NODE rbTree::p_GetPredecessor(t_NODE predecessor){
-    while (predecessor->lChild != GLOBAL_NIL) {
-        predecessor = predecessor->lChild;
+    try{
+        while (predecessor->lChild != GLOBAL_NIL) {
+            predecessor = predecessor->lChild;
+        }
+        return predecessor;
+    } catch (exception &exc){
+        throw MyException("Error during execution of p_GetPredecessor: " + string(exc.what()), WARNING);
     }
-    return predecessor;
 }
 
 /**************************** PRIVATE: p_DeleteNode ****************************/
 void rbTree::p_DeleteNode(t_NODE z){
-    t_NODE y = z;
-    t_NODE x;
-    n_COLOR yOriginalColor = y->color;
-    if(z->lChild == GLOBAL_NIL){
-        x = z->rChild;
-        p_Transplant(z, z->rChild);
-    } else if (z->rChild == GLOBAL_NIL){
-        x = z->lChild;
-        p_Transplant(z, z->lChild);
-    } else{
-        y = p_GetPredecessor(z->rChild);
-        yOriginalColor = y->color;
-        x = y->rChild;
-        if(y->parent == z){
-            x->parent = y;
+    try{
+        t_NODE y = z;
+        t_NODE x;
+        n_COLOR yOriginalColor = y->color;
+        if(z->lChild == GLOBAL_NIL){
+            x = z->rChild;
+            p_Transplant(z, z->rChild);
+        } else if (z->rChild == GLOBAL_NIL){
+            x = z->lChild;
+            p_Transplant(z, z->lChild);
         } else{
-            p_Transplant(y, y->rChild);
-            y->rChild = z->rChild;
-            y->rChild->parent = y;
+            y = p_GetPredecessor(z->rChild);
+            yOriginalColor = y->color;
+            x = y->rChild;
+            if(y->parent == z){
+                x->parent = y;
+            } else{
+                p_Transplant(y, y->rChild);
+                y->rChild = z->rChild;
+                y->rChild->parent = y;
+            }
+            p_Transplant(z, y);
+            y->lChild = z->lChild;
+            y->lChild->parent = y;
+            y->color = z->color;
         }
-        p_Transplant(z, y);
-        y->lChild = z->lChild;
-        y->lChild->parent = y;
-        y->color = z->color;
+        if(yOriginalColor == BLACK){
+            p_DeleteHelper(x);
+        }
+        delete z;
+    }catch (exception &exc){
+        throw MyException("Error during execution of p_DeleteNode: " + string(exc.what(), WARNING));
     }
-    if(yOriginalColor == BLACK){
-        p_DeleteHelper(x);
-    }
-    delete z;
 }
 
 /**************************** PRIVATE: p_Transplant ****************************/
 void rbTree::p_Transplant(t_NODE u, t_NODE v){
-    if(u->parent == GLOBAL_NIL){
-        p_Root = v;
-    } else if (u == u->parent->lChild){
-        u->parent->lChild = v;
-    } else{
-        u->parent->rChild = v;
+    try{
+        if(u->parent == GLOBAL_NIL){
+            p_Root = v;
+        } else if (u == u->parent->lChild){
+            u->parent->lChild = v;
+        } else{
+            u->parent->rChild = v;
+        }
+        v->parent = u->parent;
+    } catch(exception &exc){
+        throw MyException("Error during execution of p_Transplant: " + string(exc.what()), WARNING);
     }
-    v->parent = u->parent;
 }
 
 /**************************** PRIVATE: p_DeleteHelper ****************************/
 void rbTree::p_DeleteHelper(t_NODE x){
-    t_NODE w;
-    while (x != p_Root && x->color == BLACK) {
-        if (x == x->parent->lChild){
-            w = x->parent->rChild;
-            if (w->color == RED){
-                w->color = BLACK;
-                x->parent->color = RED;
-                p_LeftRotate(x->parent);
+    try{
+        t_NODE w;
+        while (x != p_Root && x->color == BLACK) {
+            if (x == x->parent->lChild){
                 w = x->parent->rChild;
-            }
-            if (w->lChild->color == BLACK && w->rChild->color == BLACK){
-                w->color = RED;
-                x = x->parent;
-            } else {
-                if (w->rChild->color == BLACK){
-                    w->lChild->color = BLACK;
-                    w->color = RED;
-                    p_RightRotate(w);
+                if (w->color == RED){
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    p_LeftRotate(x->parent);
                     w = x->parent->rChild;
                 }
-                w->color = x->parent->color;
-                x->parent->color = BLACK;
-                w->rChild->color = BLACK;
-                p_LeftRotate(x->parent);
-                x = p_Root;
-            }
-        } else {
-            w = x->parent->lChild;
-            if (w->color == RED){
-                w->color = BLACK;
-                x->parent->color = RED;
-                p_RightRotate(x->parent);
-                w = x->parent->lChild;
-            }
-            if (w->rChild->color == BLACK && w->lChild->color == BLACK){
-                w->color = RED;
-                x = x->parent;
-            } else {
-                if (w->lChild->color == BLACK){
-                    w->rChild->color = BLACK;
+                if (w->lChild->color == BLACK && w->rChild->color == BLACK){
                     w->color = RED;
-                    p_LeftRotate(w);
+                    x = x->parent;
+                } else {
+                    if (w->rChild->color == BLACK){
+                        w->lChild->color = BLACK;
+                        w->color = RED;
+                        p_RightRotate(w);
+                        w = x->parent->rChild;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->rChild->color = BLACK;
+                    p_LeftRotate(x->parent);
+                    x = p_Root;
+                }
+            } else {
+                w = x->parent->lChild;
+                if (w->color == RED){
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    p_RightRotate(x->parent);
                     w = x->parent->lChild;
                 }
-                w->color = x->parent->color;
-                x->parent->color = BLACK;
-                w->lChild->color = BLACK;
-                p_RightRotate(x->parent);
-                x = p_Root;
+                if (w->rChild->color == BLACK && w->lChild->color == BLACK){
+                    w->color = RED;
+                    x = x->parent;
+                } else {
+                    if (w->lChild->color == BLACK){
+                        w->rChild->color = BLACK;
+                        w->color = RED;
+                        p_LeftRotate(w);
+                        w = x->parent->lChild;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->lChild->color = BLACK;
+                    p_RightRotate(x->parent);
+                    x = p_Root;
+                }
             }
         }
+        x->color = BLACK;
+    } catch(exception &exc){
+        throw MyException("Error during execution of p_DeleteHelper: " + string(exc.what()), WARNING);
     }
-    x->color = BLACK;
 }
 
 /**************************** PRIVATE: p_DeleteTree ****************************/
@@ -427,11 +458,7 @@ void rbTree::p_DeleteTree(void){
     int count = 1;
     try {
         while (p_Root != GLOBAL_NIL){
-        cout<<"****"<<count<<"****"<<endl<<endl;
         p_DeleteNode(p_Root);
-        p_DumpTree(p_Root, 1);
-        cout<<endl;
-        count++;
     } 
     } catch(exception &exc) {
         throw MyException("Error during execution of p_DeleteTree. " + string(exc.what()), WARNING);

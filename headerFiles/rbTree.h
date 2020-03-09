@@ -49,7 +49,7 @@ class rbTree{
         int p_RightRotate(t_NODE);
         t_NODE p_GetRoot(void);
         void p_InOrderPrint(t_NODE);
-        void p_SearchExcWhenAbsent(t_NODE, int); //used for search, delete
+        void p_SearchExcWhenAbsent(t_NODE, int); //used for search
         void p_SearchExcWhenPresent(t_NODE, int); //used for insert
         t_NODE p_GetNode(t_NODE, int);
         void p_Transplant(t_NODE, t_NODE);
